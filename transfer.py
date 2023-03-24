@@ -1,6 +1,6 @@
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-import sys
+from transfer_exceptions import InsufficientBalanceError, InvalidAddressError, InvalidKeyError
 
 class TokenTransfer:
     def __init__(self, rpc_url, private_key, contract_address=None):
@@ -12,7 +12,7 @@ class TokenTransfer:
             contract_address (_type_, optional): contract address of transfer token, if any. ETH if none
         """
         if len(private_key) != 64:
-            sys.exit("Invalid private key supplied") 
+            raise InvalidKeyError("Invalid private key supplied") 
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         self.private_key = private_key
@@ -50,7 +50,7 @@ class TokenTransfer:
 
         """
         if not self.w3.is_checksum_address(recipient_address):
-            sys.exit("recipient address is invalid")
+            raise InvalidAddressError("recipient address is invalid")
             
         if not gas:
             gas = 21000
@@ -65,7 +65,7 @@ class TokenTransfer:
         token_amount = int(amount * (10 ** decimals))
         
         if self.get_balance() < token_amount:
-            sys.exit('Amount exceeded balance')
+            raise InsufficientBalanceError('Amount exceeded balance')
             
         if self.contract:
             if use_max_gas:
