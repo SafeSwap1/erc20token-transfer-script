@@ -39,11 +39,16 @@ class TokenTransfer:
         
     def get_balance(self):
         if self.contract:
-            return self.w3.eth.functions.balanceOf(self.sender_address).call()
+            return self.contract.functions.balanceOf(self.sender_address).call()
         else:
             return self.w3.eth.get_balance(self.sender_address)
 
     def transfer_tokens(self, recipient_address, amount, gas = None, time_out = None, use_max_gas = False):
+        """
+        Args:
+            use_max_gas (bool, optional): _description_. Defaults to False. use max gas if you want to use all eth balance for fee
+
+        """
         if not self.w3.is_checksum_address(recipient_address):
             sys.exit("recipient address is invalid")
             
