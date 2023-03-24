@@ -1,6 +1,6 @@
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-import sys, time
+import sys
 
 class TokenTransfer:
     def __init__(self, rpc_url, private_key, contract_address=None):
@@ -43,7 +43,7 @@ class TokenTransfer:
         else:
             return self.w3.eth.get_balance(self.sender_address)
 
-    def transfer_tokens(self, recipient_address, amount, gas = None, time_out = None):
+    def transfer_tokens(self, recipient_address, amount, gas = None, time_out = None, use_max_gas = False):
         if not self.w3.is_checksum_address(recipient_address):
             sys.exit("recipient address is invalid")
             
@@ -62,7 +62,11 @@ class TokenTransfer:
         if self.get_balance() < token_amount:
             sys.exit('Amount exceeded balance')
             
-        elif self.contract:
+        if self.contract:
+            if use_max_gas:
+                gas_price = self.w3.eth.get_balance(self.sender_address) // gas
+            else:
+                gas_price = self.w3.eth.gas_price
             # Transfer ERC20 tokens
             token_txn = self.contract.functions.transfer(
                 recipient_address,
@@ -70,16 +74,20 @@ class TokenTransfer:
             ).build_transaction({
                 'chainId': self.w3.eth.chain_id,
                 'gas': gas,
-                'gasPrice': self.w3.eth.gasPrice,
+                'gasPrice': gas_price,
                 'nonce': nonce,
             })
         else:
+            if use_max_gas:
+                gas_price = (self.w3.eth.get_balance(self.sender_address) - token_amount) // gas
+            else:
+                gas_price = self.w3.eth.gas_price
             # Transfer ETH
             token_txn = {
                 'to': recipient_address,
                 'value': token_amount,
                 'gas': gas,
-                'gasPrice': self.w3.eth.gas_price,
+                'gasPrice': gas_price ,
                 'nonce': nonce,
                 'chainId': self.w3.eth.chain_id
             }
@@ -96,5 +104,3 @@ class TokenTransfer:
         transaction_hash = txn_receipt['transactionHash']
 
         return f"Transaction Hash: {self.w3.to_hex(transaction_hash)}"
-
-
