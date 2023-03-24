@@ -4,6 +4,13 @@ import sys, time
 
 class TokenTransfer:
     def __init__(self, rpc_url, private_key, contract_address=None):
+        """initialization method
+
+        Args:
+            rpc_url (_type_): i.e https://bsc-dataseed.binance.org/ for bsc
+            private_key (_type_): private key is a 64 character long string
+            contract_address (_type_, optional): contract address of transfer token, if any. ETH if none
+        """
         if len(private_key) != 64:
             sys.exit("Invalid private key supplied") 
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
