@@ -1,6 +1,7 @@
-from web3 import Web3
+from web3 import Web3, Account
 from web3.middleware import geth_poa_middleware
 from transfer_exceptions import InsufficientBalanceError, InvalidAddressError, InvalidKeyError
+import re
 
 class TokenTransfer:
     def __init__(self, rpc_url, private_key, contract_address=None):
@@ -11,7 +12,7 @@ class TokenTransfer:
             private_key (_type_): private key is a 64 character long string
             contract_address (_type_, optional): contract address of transfer token, if any. ETH if none
         """
-        if len(private_key) != 64:
+        if not self.is_private_key_valid(private_key):
             raise InvalidKeyError("Invalid private key supplied") 
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -30,7 +31,10 @@ class TokenTransfer:
             self.contract_address = None
             self.contract_abi = None
             self.contract = None
-
+         
+    def is_private_key_valid(self, address):
+        return re.search(r'[0-9a-fA-F]{64}', address) is not None
+        
     def get_token_decimals(self):
         if self.contract:
             return self.contract.functions.decimals().call()
