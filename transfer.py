@@ -1,5 +1,5 @@
 from web3 import Web3, Account
-from web3.middleware import geth_poa_middleware
+from web3.middleware.geth_poa import geth_poa_middleware
 from transfer_exceptions import InsufficientBalanceError, InvalidAddressError, InvalidKeyError
 import re
 
@@ -24,14 +24,15 @@ class TokenTransfer:
                 {"constant":False,"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":False,"stateMutability":"nonpayable","type":"function"},
                 {"constant":True,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":False,"stateMutability":"view","type":"function"},
                 {"constant":True,"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":False,"stateMutability":"view","type":"function"},
-                {"constant":False,"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":False,"stateMutability":"nonpayable","type":"function"}
+                {"constant":False,"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":False,"stateMutability":"nonpayable","type":"function"},
+                {"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}
             ]
             self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.contract_abi)
         else:
             self.contract_address = None
             self.contract_abi = None
             self.contract = None
-         
+    
     def is_private_key_valid(self, address):
         return re.search(r'[0-9a-fA-F]{64}', address) is not None
         
@@ -40,6 +41,9 @@ class TokenTransfer:
             return self.contract.functions.decimals().call()
         else:
             return 18
+        
+    def get_token_icon(self):
+        return self.contract.method.symbol().call()
         
     def get_balance(self):
         if self.contract:
